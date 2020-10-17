@@ -1,28 +1,46 @@
-const { app, BrowserWindow } = require('electron')
-
-function createWindow () {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
-    }
-  })
-
-  win.loadFile('index.html')
-  win.webContents.openDevTools()
+const {app, BrowserWindow, ipcMain, Notification} = require('electron')
+let mainWindow;
+function handleIPC() {
+    ipcMain.handle('notification', async (e, {body, title, actions, closeButtonText}) => {
+        let res = await new Promise((resolve, reject) => {
+            console.log({
+                title,
+                body,
+                actions,
+                closeButtonText
+            })
+            let notification = new Notification({
+                title,
+                body,
+                actions,
+                closeButtonText
+            })
+            notification.show()
+            notification.on('action', function(event) {
+                resolve({event: 'action'})
+            })
+            notification.on('close', function(event) {
+                resolve({event: 'close'})
+            })
+        })
+        return res
+    })
 }
 
-app.whenReady().then(createWindow)
+function createMainWindow() {
+    mainWindow = new BrowserWindow({
+        width: 300,
+        height: 380,
+        webPreferences: {
+            nodeIntegration: true
+        }
+    })
+    mainWindow.loadFile('./index.html')
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+    return mainWindow
+}
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-  }
+app.whenReady().then(() => {
+    handleIPC()
+    createMainWindow()
 })
