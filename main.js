@@ -1,49 +1,46 @@
-const { app, BrowserWindow, ipcMain, Notification } = require("electron");
+const {app, BrowserWindow, ipcMain, Notification} = require('electron')
 let mainWindow;
 function handleIPC() {
-  ipcMain.handle(
-    "notification",
-    async (e, { body, title, actions, closeButtonText }) => {
-      let res = await new Promise((resolve, reject) => {
-        console.log({
-          title,
-          body,
-          actions,
-          closeButtonText,
-        });
-        let notification = new Notification({
-          title,
-          body,
-          actions,
-          closeButtonText,
-        });
-        notification.show();
-        notification.on("action", function (event) {
-          resolve({ event: "action" });
-        });
-        notification.on("close", function (event) {
-          resolve({ event: "close" });
-        });
-      });
-      return res;
-    }
-  );
+    ipcMain.handle('notification', async (e, {body, title, actions, closeButtonText}) => {
+        let res = await new Promise((resolve, reject) => {
+            console.log({
+                title,
+                body,
+                actions,
+                closeButtonText
+            })
+            let notification = new Notification({
+                title,
+                body,
+                actions,
+                closeButtonText
+            })
+            notification.show()
+            notification.on('action', function(event) {
+                resolve({event: 'action'})
+            })
+            notification.on('close', function(event) {
+                resolve({event: 'close'})
+            })
+        })
+        return res
+    })
 }
 
 function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    width: 300,
-    height: 380,
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  });
-  mainWindow.loadFile("./index.html");
-  mainWindow.webContents.openDevTools();
-  return mainWindow;
+    mainWindow = new BrowserWindow({
+        width: 300,
+        height: 380,
+        webPreferences: {
+            nodeIntegration: true
+        }
+    })
+    mainWindow.loadFile('./index.html')
+
+    return mainWindow
 }
 
 app.whenReady().then(() => {
-  handleIPC();
-  createMainWindow();
-});
+    handleIPC()
+    createMainWindow()
+})
